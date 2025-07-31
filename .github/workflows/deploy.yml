@@ -28,14 +28,14 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin \
-            4300-0637-6054.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            430006376054.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
       # Step 4: Build and push Docker image
       - name: Build, Tag, and Push Docker image
         run: |
           IMAGE_REPO_NAME=fastapi-app
           IMAGE_TAG=latest
-          ACCOUNT_ID=4300-0637-6054
+          ACCOUNT_ID=430006376054
 
           # Build Docker image
           docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
