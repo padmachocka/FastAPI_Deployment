@@ -21,15 +21,15 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: eu-west-2
 
       # Step 3: Login to AWS ECR
       - name: Login to Amazon ECR
         id: login-ecr
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          aws ecr get-login-password --region eu-west-2 \
           | docker login --username AWS --password-stdin \
-            430006376054.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            430006376054.dkr.ecr.eu-west-2.amazonaws.com
 
       # Step 4: Build and push Docker image
       - name: Build, Tag, and Push Docker image
@@ -43,7 +43,7 @@ jobs:
 
           # Tag image for ECR
           docker tag $IMAGE_REPO_NAME:$IMAGE_TAG \
-            $ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+            $ACCOUNT_ID.dkr.ecr.eu-west-2.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
 
           # Push to ECR
-          docker push $ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+          docker push $ACCOUNT_ID.dkr.ecr.eu-west-2.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
