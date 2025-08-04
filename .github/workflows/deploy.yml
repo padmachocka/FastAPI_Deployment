@@ -1,21 +1,18 @@
-# Trigger workflow after AWS Account ID fix
 name: Build and Push to ECR
 
 on:
   push:
     branches:
-      - main  # run workflow on push to main branch
+      - main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use GitHub-hosted Ubuntu runner
 
     steps:
-      # Step 1: Checkout repo
       - name: Check out code
         uses: actions/checkout@v4
 
-      # Step 2: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -23,27 +20,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
-      # Step 3: Login to AWS ECR
       - name: Login to Amazon ECR
-        id: login-ecr
-        run: |
-          aws ecr get-login-password --region eu-west-2 \
-          | docker login --username AWS --password-stdin \
-            430006376054.dkr.ecr.eu-west-2.amazonaws.com
+        uses: aws-actions/amazon-ecr-login@v1
 
-      # Step 4: Build and push Docker image
       - name: Build, Tag, and Push Docker image
         run: |
           IMAGE_REPO_NAME=fastapi-app
           IMAGE_TAG=latest
           ACCOUNT_ID=430006376054
 
-          # Build Docker image
           docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
-
-          # Tag image for ECR
-          docker tag $IMAGE_REPO_NAME:$IMAGE_TAG \
-            $ACCOUNT_ID.dkr.ecr.eu-west-2.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
-
-          # Push to ECR
+          docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.eu-west-2.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
           docker push $ACCOUNT_ID.dkr.ecr.eu-west-2.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+
+      - name: SSH and deploy on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 430006376054.dkr.ecr.eu-west-2.amazonaws.com
+            docker pull 430006376054.dkr.ecr.eu-west-2.amazonaws.com/fastapi-app:latest
+            docker stop my-fastapi-app || true
+            docker rm my-fastapi-app || true
+            docker run -d --name my-fastapi-app -p 80:80 430006376054.dkr.ecr.eu-west-2.amazonaws.com/fastapi-app:latest
