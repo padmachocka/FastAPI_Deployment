@@ -40,7 +40,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 430006376054.dkr.ecr.eu-west-2.amazonaws.com
+            # Retrieve ECR login password and store it in a variable
+            ECR_PASSWORD=$(aws ecr get-login-password --region eu-west-2)
+            # Use the variable in the docker login command
+            docker login --username AWS --password "$ECR_PASSWORD" 430006376054.dkr.ecr.eu-west-2.amazonaws.com
+
             docker pull 430006376054.dkr.ecr.eu-west-2.amazonaws.com/fastapi-app:latest
             docker stop my-fastapi-app || true
             docker rm my-fastapi-app || true
