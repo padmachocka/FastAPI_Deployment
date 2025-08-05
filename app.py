@@ -23,9 +23,11 @@ class Features(BaseModel):
     
 app = FastAPI()
 
-model_name = "Logistic Regression"
-model_stage = "challenger"  # Change stage if required
-model_uri = f"models:/{model_name}@{model_stage}"
+# model_name = "Logistic Regression"
+# model_stage = "challenger"  # Change stage if required
+# model_uri = f"models:/{model_name}@{model_stage}"
+# To load the latest version
+model_uri = "models:/Logistic Regression/latest"
 
 # Load model once when app starts
 model = mlflow.sklearn.load_model(model_uri)
